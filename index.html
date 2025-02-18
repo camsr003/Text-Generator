@@ -18,6 +18,8 @@
         let batDirection = 1;
         let batAngle = 0;
         let particles = [];
+        let batColor = [0, 0, 0]; // Initial bat color
+        let batSize = 1; // Initial bat size
 
         function setup() {
             createCanvas(windowWidth, windowHeight);
@@ -57,23 +59,25 @@
                     particles.splice(i, 1); // Remove particle once it reaches the bottom
                 }
             }
-            drawBat(batX, batY + sin(batAngle) * 20, 1);
+            drawBat(batX, batY + sin(batAngle) * 20, batSize, batColor);
             
-            // Move the bat side to side
-            batX += batSpeed * batDirection;
+            // Move the bat from left to right
+            batX += batSpeed;
             batAngle += 0.05;
-            if (batX > width - 50 || batX < 50) {
-                batDirection *= -1;
+            if (batX > width) {
+                batX = 0; // Reappear from the right side
+                batColor = [random(255), random(255), random(255)]; // Change bat color
+                batSize = random(0.5, 5); // Increase the range of bat size
             }
         }
 
-        function drawBat(x, y, size) {
+        function drawBat(x, y, size, color) {
             push();
             translate(x, y);
             scale(size);
 
             // Body
-            fill(0);
+            fill(color);
             ellipse(0, 0, 40, 30);
 
             // Head
@@ -92,7 +96,7 @@
             ellipse(5, -22, 2, 2);
 
             // Wings
-            fill(0);
+            fill(color);
             beginShape();
             vertex(-20, 0);
             bezierVertex(-50, -20, -70, 10, -40, 20);
