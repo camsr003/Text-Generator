@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracery + p5.js Demo</title>
+    <script src="jquery-3.7.1.min.js"></script>
+    <script src="p5.min.js"></script>
+    <script src="tracery.min.js"></script>
+</head>
+<body>
+    <script>
+        let generatedText = "Loading...";
+        let grammar;
+        let x, y;
+        let batX, batY;
+        let batSpeed = 3;
+        let batDirection = 1;
+        let batAngle = 0;
+        let particles = [];
+
+        function setup() {
+            createCanvas(windowWidth, windowHeight);
+            textSize(20);
+            textAlign(CENTER, CENTER);
+            batX = width / 2;
+            batY = height / 3;
+
+            // Load the Tracery grammar JSON file using jQuery
+            $.getJSON("filtered_categorized_words.json", function(data) {
+                grammar = tracery.createGrammar(data);
+                generateText();
+                setInterval(generateText, 1500);
+            }).fail(function() {
+                generatedText = "Failed to load grammar.json";
+            });
+        }
+
+        function generateText() {
+            if (grammar) {
+                let newText = grammar.flatten("#origin#");
+                let newX = random(width);
+                let newY = 0; // Start from the top
+                let speed = random(1, 5); // Random speed for falling text
+                particles.push({ text: newText, x: newX, y: newY, speed: speed });
+            }
+        }
+
+        function draw() {
+            background(240);
+            fill(0);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                text(p.text, p.x, p.y);
+                p.y += p.speed; // Use the random speed for falling text
+                if (p.y > height) {
+                    particles.splice(i, 1); // Remove particle once it reaches the bottom
+                }
+            }
+            drawBat(batX, batY + sin(batAngle) * 20, 1);
+            
+            // Move the bat side to side
+            batX += batSpeed * batDirection;
+            batAngle += 0.05;
+            if (batX > width - 50 || batX < 50) {
+                batDirection *= -1;
+            }
+        }
+
+        function drawBat(x, y, size) {
+            push();
+            translate(x, y);
+            scale(size);
+
+            // Body
+            fill(0);
+            ellipse(0, 0, 40, 30);
+
+            // Head
+            ellipse(0, -20, 25, 20);
+
+            // Ears
+            triangle(-10, -30, -5, -15, 0, -20);
+            triangle(10, -30, 5, -15, 0, -20);
+
+            // Eyes
+            fill(255);
+            ellipse(-5, -22, 5, 5);
+            ellipse(5, -22, 5, 5);
+            fill(0);
+            ellipse(-5, -22, 2, 2);
+            ellipse(5, -22, 2, 2);
+
+            // Wings
+            fill(0);
+            beginShape();
+            vertex(-20, 0);
+            bezierVertex(-50, -20, -70, 10, -40, 20);
+            bezierVertex(-50, 5, -30, -5, -20, 0);
+            endShape(CLOSE);
+
+            beginShape();
+            vertex(20, 0);
+            bezierVertex(50, -20, 70, 10, 40, 20);
+            bezierVertex(50, 5, 30, -5, 20, 0);
+            endShape(CLOSE);
+            
+            pop();
+        }
+
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+        }
+    </script>
+</body>
+</html>
